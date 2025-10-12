@@ -94,10 +94,8 @@ public class DownloadMovieTvService extends SwingWorker<String, Void> {
 
 				String fullUrl = Utils.extractUrlWithParams(html) + "&lang=it&h=1"; //masterPlaylist
 				String fileName = Utils.extractFilename(html);
-				if(fileName.equals("")) 
-					fileName = fileNameTmp;
+				
 				consoleFrame.appendLine("fullUrl: " + fullUrl);
-				consoleFrame.appendLine("fileName: " + fileName);
 				
 				if(!fullUrl.equals("")) {
 					client = HttpClient.newHttpClient();
@@ -116,6 +114,12 @@ public class DownloadMovieTvService extends SwingWorker<String, Void> {
 					consoleFrame.appendLine("RESOLUTION: " + si.getResolution());
 					consoleFrame.appendLine("AUDIO URL: " + si.getAudioUrl());
 					consoleFrame.appendLine("SUBS URL: " + si.getSubUrl());
+					
+					if(fileName.equals("")) 
+						fileName = fileNameTmp + ".iTALiAN." + StreamInfo.extractResolutionForFilename(si.getResolution()) + "WEB.H264-eXoStream";
+					
+					fileName = StreamInfo.cleanFilename(fileName.replaceAll(" ", "."));
+					consoleFrame.appendLine("fileName: " + fileName);
 					
 					//controllo se esiste la cartella out
 					File directory = new File("out");

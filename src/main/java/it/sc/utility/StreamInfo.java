@@ -108,4 +108,35 @@ public class StreamInfo {
 	}
 	 
 
+	public static String extractResolutionForFilename(String input) {
+	    if (input == null || !input.contains("x")) {
+	        return "";
+	    }
+
+	    String[] parti = input.split("x");
+	    if (parti.length != 2) {
+	    	return "";
+	    }
+
+	    String altezza = parti[1].trim();
+	    return altezza + "p.";
+	}
+
+	public static String cleanFilename(String nome) {
+	    if (nome == null) return null;
+
+	    // Elimina i caratteri non validi per file/directory (cross-platform)
+	    String pulito = nome.replaceAll("[\\\\/:*?\"<>|]", "");
+
+	    // Rimuove eventuali spazi o punti finali
+	    pulito = pulito.replaceAll("[\\s.]+$", "");
+
+	    // Opzionalmente, puoi troncare il nome se troppo lungo (es. max 255 caratteri)
+	    if (pulito.length() > 255) {
+	        pulito = pulito.substring(0, 255);
+	    }
+
+	    return pulito;
+	}
+
 }
