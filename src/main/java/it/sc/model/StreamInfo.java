@@ -1,4 +1,4 @@
-package it.sc.utility;
+package it.sc.model;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -119,7 +119,7 @@ public class StreamInfo {
 	    }
 
 	    String altezza = parti[1].trim();
-	    return altezza + "p.";
+	    return altezza + "p";
 	}
 
 	public static String cleanFilename(String nome) {
@@ -137,6 +137,14 @@ public class StreamInfo {
 	    }
 
 	    return pulito;
+	}
+
+	public static String getYear(String date) {
+		if(date == null || date.equals(""))
+			return "";
+		else 
+			return "." + date.substring(0, 4);
+
 	}
 
 }

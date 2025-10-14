@@ -24,6 +24,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
+import it.sc.model.Content;
 import it.sc.services.DownloadMovieTvService;
 import it.sc.services.SearchTVService;
 import it.sc.utility.Constants;
@@ -128,10 +129,18 @@ public class SeasonsEpisodesFrame extends JFrame {
 				String idTv = (String) resultTableTv.getModel().getValueAt(selectedRow, Constants.COLUMN_ID_TV);
 				String titleEp = (String) resultTableTv.getModel().getValueAt(selectedRow, Constants.COLUMN_NAME_TV);
 				String episode = (String) resultTableTv.getModel().getValueAt(selectedRow, Constants.COLUMN_NUMBER_TV);
-				
+				String date = (String) resultTableTv.getModel().getValueAt(selectedRow, Constants.COLUMN_DATE_TV);
 				String fileNameTmp = title + ".S" + Utils.formatNumber(seasonsCount) + ".E" + Utils.formatNumber(episode) + "." + titleEp;
-				consoleFrame.appendLine("idTv: " + idTv + " - fileNameTmp: " + fileNameTmp);
-				new DownloadMovieTvService(id+"?episode_id="+idTv+"&next_episode=1", titleEp, fileNameTmp, progressBarTv, consoleFrame).execute();
+				
+				Content content = new Content();
+				content.setId(id+"?episode_id="+idTv+"&next_episode=1");
+				content.setTitle(titleEp);
+				content.setEpisode(episode);
+				content.setDate(date);
+				content.setFileNameTmp(fileNameTmp);
+				
+				consoleFrame.appendLine(content.toString());
+				new DownloadMovieTvService(content, progressBarTv, consoleFrame).execute();
 
 			}
 		});

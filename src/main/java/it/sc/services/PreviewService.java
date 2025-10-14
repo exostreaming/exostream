@@ -86,7 +86,7 @@ public class PreviewService extends SwingWorker<String, Void> {
 				JSONObject props = root.getJSONObject("props");
 				JSONObject title = props.getJSONObject("title");
 
-				if(quality.getText().equals("Loading..."))
+				if(quality.getText().equals("Loading...") || !title.getString("quality").equalsIgnoreCase("none"))
 					quality.setText("Quality: "+ title.getString("quality"));
 				plot.setText(title.getString("plot"));
 

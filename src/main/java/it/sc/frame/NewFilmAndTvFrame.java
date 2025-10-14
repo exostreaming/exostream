@@ -39,6 +39,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
+import it.sc.model.Content;
 import it.sc.services.DownloadMovieTvService;
 import it.sc.services.LatestMovieTvService;
 import it.sc.services.SearchService;
@@ -256,11 +257,21 @@ public class NewFilmAndTvFrame extends JFrame {
 				String slug = (String) resultTable.getModel().getValueAt(selectedRow, Constants.COLUMN_SLUG);
 				String seasons_count = (String) resultTable.getModel().getValueAt(selectedRow, Constants.COLUMN_SEASON_COUNT);
 				String title = (String) resultTable.getModel().getValueAt(selectedRow, Constants.COLUMN_NAME);
+				String date = (String) resultTable.getModel().getValueAt(selectedRow, Constants.COLUMN_DATE);
 				
-				consoleFrame.appendLine("id: " + id + " - Type: " + type + " - slug: " + slug + " - seasons_count: " + seasons_count + " - title: " + title);
+				Content content = new Content();
+				content.setId(id);
+				content.setType(type);
+				content.setSlug(slug);
+				content.setSeasons_count(seasons_count);
+				content.setTitle(title);
+				content.setDate(date);
+				content.setFileNameTmp(title);
+				
+				consoleFrame.appendLine(content.toString());
 
 				if(type.equalsIgnoreCase(Constants.TYPE_MOVIE))
-					new DownloadMovieTvService(id, title, title, progressBar, consoleFrame).execute();
+					new DownloadMovieTvService(content, progressBar, consoleFrame).execute();
 				else if(type.equalsIgnoreCase(Constants.TYPE_TV)) {
 					int mainX = this.getX();
 					int mainY = this.getY();

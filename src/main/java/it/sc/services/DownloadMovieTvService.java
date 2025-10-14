@@ -16,32 +16,30 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
 
 import org.apache.commons.text.StringEscapeUtils;
+import org.json.JSONObject;
 
 import it.sc.frame.ConsoleFrame;
+import it.sc.model.Content;
+import it.sc.model.StreamInfo;
 import it.sc.utility.ConfigProperties;
 import it.sc.utility.Constants;
-import it.sc.utility.StreamInfo;
 import it.sc.utility.Utils;
 
 public class DownloadMovieTvService extends SwingWorker<String, Void> {
 
-	private final String query;
-	private String title;
 	private JProgressBar progressBar;
 	private ConsoleFrame consoleFrame;
-	private String fileNameTmp;
-	
-	public DownloadMovieTvService(String query, String title, String fileNameTmp, JProgressBar progressBar, ConsoleFrame consoleFrame) {
-		this.query = query;
-		this.title = title;
+	private Content content;
+
+	public DownloadMovieTvService(Content content, JProgressBar progressBar, ConsoleFrame consoleFrame) {
 		this.progressBar = progressBar;
 		this.consoleFrame = consoleFrame;
-		this.fileNameTmp = fileNameTmp;
+		this.content = content;
 	}
 
 	@Override
 	protected String doInBackground() throws Exception {
-		return search(query);
+		return search(content.getId());
 	}
 
 	@Override
@@ -94,9 +92,9 @@ public class DownloadMovieTvService extends SwingWorker<String, Void> {
 
 				String fullUrl = Utils.extractUrlWithParams(html) + "&lang=it&h=1"; //masterPlaylist
 				String fileName = Utils.extractFilename(html);
-				
+
 				consoleFrame.appendLine("fullUrl: " + fullUrl);
-				
+
 				if(!fullUrl.equals("")) {
 					client = HttpClient.newHttpClient();
 					request = HttpRequest.newBuilder()
@@ -114,13 +112,13 @@ public class DownloadMovieTvService extends SwingWorker<String, Void> {
 					consoleFrame.appendLine("RESOLUTION: " + si.getResolution());
 					consoleFrame.appendLine("AUDIO URL: " + si.getAudioUrl());
 					consoleFrame.appendLine("SUBS URL: " + si.getSubUrl());
-					
+
 					if(fileName.equals("")) 
-						fileName = fileNameTmp + ".iTALiAN." + StreamInfo.extractResolutionForFilename(si.getResolution()) + "WEB.H264-eXoStream";
-					
+						fileName = content.getFileNameTmp() + StreamInfo.getYear(content.getDate())  + ".iTALiAN." + getQuality(content.getId(), content.getSlug(), si.getResolution()) + ".H264-eXoStream";
+
 					fileName = StreamInfo.cleanFilename(fileName.replaceAll(" ", "."));
 					consoleFrame.appendLine("fileName: " + fileName);
-					
+
 					//controllo se esiste la cartella out
 					File directory = new File("out");
 					if (!directory.exists())  
@@ -129,7 +127,7 @@ public class DownloadMovieTvService extends SwingWorker<String, Void> {
 					if(si.getSubUrl() != null) { //Download sub ita
 						Utils.getSub(si.getSubUrl(), fileName);
 					}
-					
+
 					if(si.getVideoUrl() != null && si.getAudioUrl() == null) { //caso download diretto
 						Utils.runExe(si.getVideoUrl(), fileName, consoleFrame);
 
@@ -163,6 +161,43 @@ public class DownloadMovieTvService extends SwingWorker<String, Void> {
 			consoleFrame.appendLine("Processo terminato");
 			progressBar.setVisible(false);
 		}
+	}
+
+	private String getQuality(String id, String slug, String resolution) {
+		String quality = "";
+		
+		try {
+			String url = ConfigProperties.URL + "/it/titles/"+id+"-"+slug;
+			HttpClient client = HttpClient.newHttpClient();
+			HttpRequest request = HttpRequest.newBuilder()
+					.uri(new URI(url))
+					.header("User-Agent", Constants.USER_AGENT)
+					.GET()
+					.build();
+
+			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			StringBuffer html = new StringBuffer();
+			html.append(response.body());
+			Pattern pattern = Pattern.compile("<div\\s*id=\"app\"[^>]*data-page=\"([^\"]+?)\"");
+			Matcher matcher = pattern.matcher(html);
+
+			if (matcher.find()) {
+				String dataPage = matcher.group(1);
+				String json = StringEscapeUtils.unescapeHtml4(dataPage.replaceAll("&quot;", "\""));
+
+				JSONObject root = new JSONObject(json);
+				JSONObject props = root.getJSONObject("props");
+				JSONObject title = props.getJSONObject("title");
+
+				quality = title.getString("quality");
+			}  
+
+		} catch (Exception e) {}
+		
+		if(quality.isEmpty() || !quality.equalsIgnoreCase("CAM"))
+			return StreamInfo.extractResolutionForFilename(resolution) + ".WEB"; 
+		else 
+			return "CAM";
 	}
 
 }

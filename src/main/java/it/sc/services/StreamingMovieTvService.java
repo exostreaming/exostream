@@ -17,9 +17,9 @@ import javax.swing.SwingWorker;
 import org.apache.commons.text.StringEscapeUtils;
 
 import it.sc.frame.ConsoleFrame;
+import it.sc.model.StreamInfo;
 import it.sc.utility.ConfigProperties;
 import it.sc.utility.Constants;
-import it.sc.utility.StreamInfo;
 import it.sc.utility.Utils;
 
 public class StreamingMovieTvService extends SwingWorker<String, Void> {
