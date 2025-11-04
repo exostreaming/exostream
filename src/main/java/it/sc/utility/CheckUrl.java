@@ -3,12 +3,15 @@ package it.sc.utility;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CheckUrl {
 
@@ -46,11 +49,14 @@ public class CheckUrl {
 					String newUrl = conn.getHeaderField("Location");
 					newUrl = removeTrailingSlash(newUrl);
 					System.out.println("Nuovo URL trovato: " + newUrl);
-					ConfigProperties.URL = newUrl;
+					
+					String checkUrl = isUrlValid(newUrl);
+					
+					ConfigProperties.URL = checkUrl;
 					ConfigProperties.URL_IMAGE = Utils.toCdnUrl(ConfigProperties.URL);
 
 					try {
-						Files.write(Paths.get("bin/url.dat"), newUrl.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+						Files.write(Paths.get("bin/url.dat"), checkUrl.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 					} catch (IOException e) {
 						//none
 					}
@@ -68,6 +74,41 @@ public class CheckUrl {
 		}
 	}
 
+	
+	private static String isUrlValid(String pageUrl) {
+		String href = pageUrl;
+		try {
+			HttpURLConnection connection = (HttpURLConnection) new URL(pageUrl).openConnection();
+			connection.setRequestMethod("GET");
+			connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+			connection.setConnectTimeout(10000);
+			connection.setReadTimeout(10000);
+
+			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			StringBuilder html = new StringBuilder();
+			String line;
+			while ((line = in.readLine()) != null) {
+				html.append(line);
+			}
+			in.close();
+
+			Pattern pattern = Pattern.compile(
+					"<a\\s+[^>]*id=[\"']landing-website[\"'][^>]*href=[\"']([^\"']+)[\"']",
+					Pattern.CASE_INSENSITIVE
+					);
+			Matcher matcher = pattern.matcher(html.toString());
+
+			if (matcher.find()) {
+				href = matcher.group(1);
+				System.out.println("Link trovato: " + href);
+			}  
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return href;
+	}
 
 	public static String removeTrailingSlash(String url) {
 		if (url == null || url.isEmpty()) {
