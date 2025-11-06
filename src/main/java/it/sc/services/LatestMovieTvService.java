@@ -75,10 +75,24 @@ public class LatestMovieTvService extends SwingWorker<List<String[]>, Void> {
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 				Collections.sort(result, (o1, o2) -> {
-					LocalDate d1 = LocalDate.parse(o1[Constants.COLUMN_DATE], formatter); 
-					LocalDate d2 = LocalDate.parse(o2[Constants.COLUMN_DATE], formatter);
-					return d2.compareTo(d1); // discendente
+				    String s1 = o1[Constants.COLUMN_DATE];
+				    String s2 = o2[Constants.COLUMN_DATE];
+
+				    // Se entrambi null → considerali uguali
+				    if (s1 == null && s2 == null) return 0;
+				    // Se solo il primo è null → mettilo dopo (così i null stanno in fondo)
+				    if (s1 == null) return 1;
+				    // Se solo il secondo è null → mettilo prima
+				    if (s2 == null) return -1;
+
+				    // Entrambi non null → confrontali come date
+				    LocalDate d1 = LocalDate.parse(s1, formatter);
+				    LocalDate d2 = LocalDate.parse(s2, formatter);
+
+				    // Ordine discendente
+				    return d2.compareTo(d1);
 				});
+
 			}		
 		}
 		else if(category.equals(Constants.TYPE_TV)) {
@@ -117,9 +131,11 @@ public class LatestMovieTvService extends SwingWorker<List<String[]>, Void> {
         Iterator<String[]> iterator = movies.iterator();
         while (iterator.hasNext()) {
             String[] movie = iterator.next();
-            LocalDate movieDate = LocalDate.parse(movie[3], formatter);
-            if (movieDate.isAfter(today)) {
-                iterator.remove();
+            if (movie[3] != null) {
+	            LocalDate movieDate = LocalDate.parse(movie[3], formatter);
+	            if (movieDate.isAfter(today)) {
+	                iterator.remove();
+	            }
             }
         }
 
